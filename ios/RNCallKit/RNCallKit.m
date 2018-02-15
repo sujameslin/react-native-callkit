@@ -114,9 +114,10 @@ RCT_EXPORT_METHOD(displayIncomingCall:(NSString *)uuidString
 }
 
 RCT_EXPORT_METHOD(startCall:(NSString *)uuidString
-                       handle:(NSString *)handle
-                       handleType:(NSString *)handleType
-                      video:(BOOL)video)
+                     handle:(NSString *)handle
+                 handleType:(NSString *)handleType
+                      video:(BOOL)video
+        localizedCallerName:(NSString * _Nullable)localizedCallerName)
 {
 #ifdef DEBUG
     NSLog(@"[RNCallKit][startCall] uuidString = %@", uuidString);
@@ -126,6 +127,8 @@ RCT_EXPORT_METHOD(startCall:(NSString *)uuidString
     CXHandle *callHandle = [[CXHandle alloc] initWithType:_handleType value:handle];
     CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:uuid handle:callHandle];
     [startCallAction setVideo:video];
+    // https://stackoverflow.com/questions/39957242/how-to-map-social-profile-with-callkit-api/41447244
+    startCallAction.contactIdentifier = localizedCallerName;
 
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:startCallAction];
 
@@ -188,6 +191,7 @@ RCT_EXPORT_METHOD(reportConnectedOutgoingCallWithUUID:(NSString *)uuidString)
                 CXStartCallAction *startCallAction = [transaction.actions firstObject];
                 CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
                 callUpdate.remoteHandle = startCallAction.handle;
+                callUpdate.localizedCallerName = startCallAction.contactIdentifier;
                 callUpdate.supportsDTMF = YES;
                 callUpdate.supportsHolding = NO;
                 callUpdate.supportsGrouping = NO;
